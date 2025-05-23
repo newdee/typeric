@@ -1,10 +1,10 @@
 [project]
 name = "typeric"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.1.1"
+description = "**typeric** is a practical type utility toolkit for Python, focused on clarity, safety, and ergonomics"
 readme = "README.md"
 authors = [
-    { name = "dfine", email = "dfine@nnkosmos.com" }
+    { name = "dfine", email = "coding@dfine.tech" }
 ]
 requires-python = ">=3.13"
 dependencies = []
@@ -20,3 +20,6 @@ build-backend = "hatchling.build"
 dev = [
     "pytest>=8.3.5",
 ]
+
+[tool.setuptools.package-data]
+"typeric" = ["py.typed"]
