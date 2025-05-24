@@ -29,6 +29,16 @@ class Ok(Generic[T]):
         self._value = value
 
     @override
+    def __eq__(self, value: object) -> bool:
+        if isinstance(value, Ok):
+            return self._value == value._value
+        return False
+
+    @override
+    def __hash__(self) -> int:
+        return hash(("Ok", self._value))
+
+    @override
     def __repr__(self):
         return f"Ok({self._value!r})"
 
@@ -54,6 +64,22 @@ class Ok(Generic[T]):
     def map_err(self, func: Callable[[E], F]) -> "Ok[T]":
         return self
 
+    def and_then(self, func: Callable[[T], "Ok[U] | Err[F]"]) -> "Ok[U] | Err[F]":
+        return func(self._value)
+
+    def or_else(self, func: Callable[[E], "Ok[T] | Err[F]"]) -> "Ok[T]":
+        return self
+
+    def unwrap_or_else(self, func: Callable[[E], T]) -> T:
+        return self._value
+
+    def inspect(self, func: Callable[[T], None]) -> "Ok[T]":
+        func(self._value)
+        return self
+
+    def inspect_err(self, func: Callable[[E], None]) -> "Ok[T]":
+        return self
+
 
 class UnwrapError(Exception):
     def __init__(self, msg: str) -> None:
@@ -68,6 +94,16 @@ class Err(Generic[E]):
 
     def __init__(self, error: E) -> None:
         self._value = error
+
+    @override
+    def __eq__(self, value: object, /) -> bool:
+        if isinstance(value, Err):
+            return self._value == value._value
+        return False
+
+    @override
+    def __hash__(self) -> int:
+        return hash(("Err", self._value))
 
     @override
     def __repr__(self):
@@ -96,6 +132,22 @@ class Err(Generic[E]):
 
     def map_err(self, func: Callable[[E], F]) -> "Err[F]":
         return Err(func(self._value))
+
+    def and_then(self, func: Callable[[T], "Ok[U] | Err[F]"]) -> "Err[E]":
+        return self
+
+    def or_else(self, func: Callable[[E], "Ok[T] | Err[F]"]) -> "Ok[T] | Err[F]":
+        return func(self._value)
+
+    def unwrap_or_else(self, func: Callable[[E], T]) -> T:
+        return func(self._value)
+
+    def inspect(self, func: Callable[[T], None]) -> "Err[E]":
+        return self
+
+    def inspect_err(self, func: Callable[[E], None]) -> "Err[E]":
+        func(self._value)
+        return self
 
 
 Result: TypeAlias = Ok[T] | Err[E]

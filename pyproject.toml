@@ -1,6 +1,6 @@
 [project]
 name = "typeric"
-version = "0.1.1"
+version = "0.1.2"
 description = "**typeric** is a practical type utility toolkit for Python, focused on clarity, safety, and ergonomics"
 readme = "README.md"
 authors = [
