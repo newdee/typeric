@@ -1,7 +1,7 @@
 [project]
 name = "typeric"
 version = "0.1.3"
-description = "**typeric** is a practical type utility toolkit for Python, focused on clarity, safety, and ergonomics"
+description = "Utility types for Python, such as `Result`, `Option`, etc."
 readme = "README.md"
 authors = [
     { name = "dfine", email = "coding@dfine.tech" }
