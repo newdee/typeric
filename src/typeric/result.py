@@ -31,7 +31,7 @@ class Ok(Generic[T]):
     @override
     def __eq__(self, value: object) -> bool:
         if isinstance(value, Ok):
-            return self._value == value._value
+            return self._value == value._value  # pyright: ignore[reportUnknownMemberType,reportUnknownVariableType]
         return False
 
     @override
