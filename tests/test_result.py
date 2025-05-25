@@ -10,12 +10,14 @@
 #                                                                              #
 # **************************************************************************** #
 
-from functools import partial
 import hashlib
+from functools import partial
 from pathlib import Path
 from typing import BinaryIO
 
-from typeric.result import Result, Ok, Err
+import pytest
+
+from typeric.result import Err, Ok, Result, UnwrapError
 
 
 def get_md5(file_obj: BinaryIO) -> Result[str, Exception]:
@@ -55,3 +57,78 @@ def test_file() -> None:
         with open(file, "rb") as f:
             exist = file_exist(f, file_set)
             assert exist.is_ok()
+
+
+def test_ok_basic():
+    result = Ok(10)
+    assert result.is_ok()
+    assert not result.is_err()
+    assert result.unwrap() == 10
+    assert result.unwrap_or(0) == 10
+    assert result.unwrap_or_else(lambda _: 0) == 10
+    assert result.map(lambda x: x + 1) == Ok(11)
+    assert result.map_err(lambda e: f"error: {e}") == Ok(10)
+    assert result.and_then(lambda x: Ok(x * 2)) == Ok(20)
+    assert result.or_else(lambda e: Err("fallback")) == Ok(10)
+
+    output = []
+    result.inspect(lambda x: output.append(x))
+    assert output == [10]
+
+
+def plus_one(x: int) -> int:
+    return x + 1
+
+
+def times_two(x: int) -> Ok[int]:
+    return Ok(x * 2)
+
+
+def test_err_basic():
+    result = Err("failure")
+    assert not result.is_ok()
+    assert result.is_err()
+    assert result.unwrap_or(99) == 99
+    assert result.unwrap_or_else(lambda e: 42) == 42
+    assert result.map(plus_one) == result
+    assert result.map_err(str.upper) == Err("FAILURE")
+    assert result.and_then(times_two) == result
+    assert result.or_else(lambda e: Ok("fallback")) == Ok("fallback")
+
+    output = []
+    result.inspect_err(lambda e: output.append(e))
+    assert output == ["failure"]
+
+
+def test_err_raises_exception():
+    result = Err(ValueError("bad"))
+    with pytest.raises(ValueError, match="bad"):
+        result.unwrap()
+
+
+def test_err_raises_unwraperror_if_not_exception():
+    result = Err("not an exception")
+    with pytest.raises(UnwrapError, match="not an exception"):
+        result.unwrap()
+
+
+def test_result_equality_and_hash():
+    assert Ok(1) == Ok(1)
+    assert Err("x") == Err("x")
+    assert Ok(1) != Err(1)
+    assert hash(Ok(1)) == hash(Ok(1))
+    assert hash(Err("x")) == hash(Err("x"))
+
+
+def test_match_args():
+    match Ok("yes"):
+        case Ok(value):
+            assert value == "yes"
+        case _:
+            assert False
+
+    match Err("oops"):
+        case Err(error):
+            assert error == "oops"
+        case _:
+            assert False
