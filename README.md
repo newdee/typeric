@@ -11,7 +11,7 @@ pip install typeric
 
 ## 🚀 Features
 - ✅ Functional-style `Result` type: `Ok(value)` and `Err(error)`
-- 🌀 Lightweight `Option` type: `Some(value)` and `None_()`
+- 🌀 Lightweight `Option` type: `Some(value)` and `NONE`
 - 🧩 Pattern matching support (`__match_args__`)
 - 🔒 Immutable with `.map()` / `.map_err()` / `.unwrap()` / `.unwrap_or()` helpers
 - 🔧 Clean type signatures: `Result[T, E]` and `Option[T]`
@@ -43,17 +43,17 @@ match parse_number("42"):
 ### `Option`
 
 ```python
-from typeric.option import Option, Some, None_
+from typeric.option import Option, Some, NONE
 
 def maybe_get(index: int, items: list[str]) -> Option[str]:
     if 0 <= index < len(items):
         return Some(items[index])
-    return None_()
+    return NONE
 
 match maybe_get(1, ["a", "b", "c"]):
     case Some(value):
         print("Got:", value)
-    case None_():
+    case NONE:
         print("Nothing found")
 ```
 
