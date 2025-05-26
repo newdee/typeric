@@ -10,7 +10,7 @@ pip install typeric
 ---
 
 ## 🚀 Features
-- ✅ Functional-style `Result` type: `Ok(value)` and `Err(error)`
+- ✅ Functional-style `Result` type: `Ok(value)` and `Err(error)`, and you can spread it(like `?` in Rust).
 - 🌀 Lightweight `Option` type: `Some(value)` and `NONE`
 - 🧩 Pattern matching support (`__match_args__`)
 - 🔒 Immutable with `.map()` / `.map_err()` / `.unwrap()` / `.unwrap_or()` helpers
