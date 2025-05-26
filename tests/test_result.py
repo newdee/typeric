@@ -6,7 +6,7 @@
 #    By: dfine <coding@dfine.tech>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/23 12:46:20 by dfine             #+#    #+#              #
-#    Updated: 2025/05/23 15:50:13 by dfine            ###   ########.fr        #
+#    Updated: 2025/05/26 22:07:16 by dfine            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ from typing import BinaryIO
 
 import pytest
 
-from typeric.result import Err, Ok, Result, UnwrapError
+from typeric.result import Err, Ok, Result, UnwrapError, spreadable, spreadable_async
 
 
 def get_md5(file_obj: BinaryIO) -> Result[str, Exception]:
@@ -132,3 +132,47 @@ def test_match_args():
             assert error == "oops"
         case _:
             assert False
+
+
+def func_a(x: int) -> Result[int, str]:
+    if x < 0:
+        return Err("negative input")
+    return Ok(x * 2)
+
+
+@spreadable
+def func_b(y: int) -> Result[int, str]:
+    a = func_a(y).spread()
+    return Ok(a + 1)
+
+
+def test_func_b_success():
+    assert func_b(5) == Ok(11)  # 5*2=10 +1=11
+
+
+def test_func_b_propagate_error():
+    assert func_b(-2) == Err("negative input")
+
+
+async def async_func_a(x: int) -> Result[int, str]:
+    if x < 0:
+        return Err("negative input")
+    return Ok(x * 2)
+
+
+@spreadable_async
+async def async_func_b(y: int) -> Result[int, str]:
+    a = (await async_func_a(y)).spread()
+    return Ok(a + 1)
+
+
+@pytest.mark.asyncio
+async def test_async_func_b_success():
+    result = await async_func_b(5)
+    assert result == Ok(11)
+
+
+@pytest.mark.asyncio
+async def test_async_func_b_propagate_error():
+    result = await async_func_b(-2)
+    assert result == Err("negative input")

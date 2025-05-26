@@ -6,17 +6,36 @@
 #    By: dfine <coding@dfine.tech>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/23 12:46:18 by dfine             #+#    #+#              #
-#    Updated: 2025/05/23 15:38:43 by dfine            ###   ########.fr        #
+#    Updated: 2025/05/26 22:04:43 by dfine            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-from collections.abc import Callable
-from typing import Generic, NoReturn, TypeAlias, TypeVar, final, override
+from collections.abc import Awaitable, Callable
+from functools import wraps
+from typing import (
+    Generic,
+    NoReturn,
+    ParamSpec,
+    TypeAlias,
+    TypeVar,
+    cast,
+    final,
+    override,
+)
 
 T = TypeVar("T")
 U = TypeVar("U")
 E = TypeVar("E", default=Exception)
 F = TypeVar("F", default=Exception)
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+@final
+class EarlyReturn(Exception, Generic[T]):
+    def __init__(self, error: T) -> None:
+        super().__init__(f"Early return with error: {error}")
+        self.error = error
 
 
 @final
@@ -79,6 +98,9 @@ class Ok(Generic[T]):
 
     def inspect_err(self, func: Callable[[E], None]) -> "Ok[T]":
         return self
+
+    def spread(self) -> T:
+        return self._value
 
 
 class UnwrapError(Exception):
@@ -149,5 +171,34 @@ class Err(Generic[E]):
         func(self._value)
         return self
 
+    def spread(self) -> NoReturn:
+        raise EarlyReturn(self._value)
+
 
 Result: TypeAlias = Ok[T] | Err[E]
+
+
+def spreadable(func: Callable[P, Result[T, E]]) -> Callable[P, Result[T, E]]:
+    @wraps(func)
+    def spread_wrap(*args: P.args, **kwargs: P.kwargs) -> Result[T, E]:
+        try:
+            return func(*args, **kwargs)
+        except EarlyReturn as e:  # pyright: ignore[reportUnknownVariableType]
+            typed_e = cast(EarlyReturn[E], e)
+            return Err(typed_e.error)
+
+    return spread_wrap
+
+
+def spreadable_async(
+    func: Callable[P, Awaitable[Result[T, E]]],
+) -> Callable[P, Awaitable[Result[T, E]]]:
+    @wraps(func)
+    async def spread_wrap(*args: P.args, **kwargs: P.kwargs) -> Result[T, E]:
+        try:
+            return await func(*args, **kwargs)
+        except EarlyReturn as e:  # pyright: ignore[reportUnknownVariableType]
+            typed_e = cast(EarlyReturn[E], e)
+            return Err(typed_e.error)
+
+    return spread_wrap

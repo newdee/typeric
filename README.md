@@ -38,6 +38,26 @@ match parse_number("42"):
         print("Parsed:", value)
     case Err(error):
         print("Failed:", error)
+
+
+def func_a(x: int) -> Result[int, str]:
+    if x < 0:
+        return Err("negative input")
+    return Ok(x * 2)
+
+
+@spreadable
+def func_b(y: int) -> Result[int, str]:
+    a = func_a(y).spread()
+    return Ok(a + 1)
+
+
+def test_func_b_success():
+    assert func_b(5) == Ok(11)  # 5*2=10 +1=11
+
+
+def test_func_b_propagate_error():
+    assert func_b(-2) == Err("negative input")
 ```
 
 ### `Option`
