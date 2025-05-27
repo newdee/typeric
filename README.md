@@ -10,7 +10,7 @@ pip install typeric
 ---
 
 ## 🚀 Features
-- ✅ Functional-style `Result` type: `Ok(value)` and `Err(error)`, and you can spread it(like `?` in Rust).
+- ✅ Functional-style `Result` type: `Ok(value)` and `Err(error)`, and you can spread(like `?` in Rust) or combine them.
 - 🌀 Lightweight `Option` type: `Some(value)` and `NONE`
 - 🧩 Pattern matching support (`__match_args__`)
 - 🔒 Immutable with `.map()` / `.map_err()` / `.unwrap()` / `.unwrap_or()` helpers
@@ -58,6 +58,41 @@ def test_func_b_success():
 
 def test_func_b_propagate_error():
     assert func_b(-2) == Err("negative input")
+
+def validate_username(username: str) -> Result[str, str]:
+    if username.strip():
+        return Ok(username)
+    return Err("Username is empty")
+
+
+def validate_age(age: int) -> Result[int, str]:
+    if age > 0:
+        return Ok(age)
+    return Err("Age must > 0")
+
+
+def validate_email(email: str) -> Result[str, str]:
+    if "@" in email:
+        return Ok(email)
+    return Err("Invalid email")
+
+
+# ✅ results combine
+def validate_user_data(
+    username: str, age: int, email: str
+) -> Result[tuple[tuple[str, int], str], str]:
+    return (
+        validate_username(username)
+        .combine(validate_age(age))
+        .combine(validate_email(email))
+    )
+
+
+result1 = validate_user_data("alice", 30, "alice@example.com")
+print(result1)  # Ok((('alice', 30), 'alice@example.com'))
+
+result2 = validate_user_data("", -5, "invalid-email")
+print(result2.errs)  # Err(['Username is empty', 'Age must > 0', 'Invalid email'])
 ```
 
 ### `Option`

@@ -6,7 +6,7 @@
 #    By: dfine <coding@dfine.tech>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/23 12:46:20 by dfine             #+#    #+#              #
-#    Updated: 2025/05/26 22:07:16 by dfine            ###   ########.fr        #
+#    Updated: 2025/05/27 18:27:58 by dfine            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,14 @@ from typing import BinaryIO
 
 import pytest
 
-from typeric.result import Err, Ok, Result, UnwrapError, spreadable, spreadable_async
+from typeric.result import (
+    Err,
+    Ok,
+    Result,
+    UnwrapError,
+    spreadable,
+    spreadable_async,
+)
 
 
 def get_md5(file_obj: BinaryIO) -> Result[str, Exception]:
@@ -176,3 +183,48 @@ async def test_async_func_b_success():
 async def test_async_func_b_propagate_error():
     result = await async_func_b(-2)
     assert result == Err("negative input")
+
+
+def test_ok_combine_ok():
+    res1 = Ok("user")
+    res2 = Ok(18)
+    res3 = Ok("email@example.com")
+
+    combined = res1.combine(res2).combine(res3)
+
+    assert isinstance(combined, Ok)
+    assert combined.unwrap() == (("user", 18), "email@example.com")
+
+
+def test_ok_combine_err():
+    res1 = Ok("user")
+    res2 = Err("age is invalid")
+
+    combined = res1.combine(res2)
+
+    assert isinstance(combined, Err)
+    assert combined.err == "age is invalid"
+    assert combined.errs == ["age is invalid"]
+
+
+def test_err_combine_err_chain():
+    err1 = Err("invalid name")
+    err2 = Err("invalid age")
+    err3 = Err("invalid email")
+
+    combined = err1.combine(err2).combine(err3)
+
+    assert isinstance(combined, Err)
+    assert combined.err == "invalid name"
+    assert combined.errs == ["invalid name", "invalid age", "invalid email"]
+
+
+def test_err_combine_ok_no_effect():
+    err = Err("something wrong")
+    ok = Ok("good")
+
+    combined = err.combine(ok)
+
+    assert isinstance(combined, Err)
+    assert combined.err == "something wrong"
+    assert combined.errs == ["something wrong"]

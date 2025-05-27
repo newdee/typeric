@@ -10,6 +10,7 @@
 #                                                                              #
 # **************************************************************************** #
 
+from __future__ import annotations
 from typing import (
     Generic,
     TypeAlias,
@@ -49,10 +50,10 @@ class Some(Generic[T]):
     def unwrap_or(self, default: T) -> T:
         return self._value
 
-    def map(self, func: Callable[[T], U]) -> "Option[U]":
+    def map(self, func: Callable[[T], U]) -> Option[U]:
         return Some(func(self._value))
 
-    def and_then(self, func: Callable[[T], "Option[U]"]) -> "Option[U]":
+    def and_then(self, func: Callable[[T], Option[U]]) -> Option[U]:
         return func(self._value)
 
     @override
@@ -81,10 +82,10 @@ class NoneType:
     def unwrap_or(self, default: T) -> T:
         return default
 
-    def map(self, func: Callable[[T], U]) -> "NoneType":
+    def map(self, func: Callable[[T], U]) -> NoneType:
         return NONE
 
-    def and_then(self, func: Callable[[T], "Option[U]"]) -> "NoneType":
+    def and_then(self, func: Callable[[T], Option[U]]) -> NoneType:
         return NONE
 
     @override
