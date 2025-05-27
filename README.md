@@ -127,7 +127,6 @@ uv run pytest -v
 
 ## 📦 Roadmap
 
-- `Validated` type for batch error collection
 - Async `Result`
 - `OptionResult` combinators
 - `Try`, `Either`, `NonEmptyList`, etc.
