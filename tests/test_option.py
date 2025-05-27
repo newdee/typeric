@@ -6,12 +6,13 @@
 #    By: dfine <coding@dfine.tech>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/25 08:06:48 by dfine             #+#    #+#              #
-#    Updated: 2025/05/25 08:09:47 by dfine            ###   ########.fr        #
+#    Updated: 2025/05/27 22:19:09 by dfine            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 
-from typeric.option import NONE, NoneTypeError, Some
+from typeric.option import NONE, NoneTypeError, Some, optiony, optiony_async
+import pytest
 
 
 def plus_one(x: int) -> int:
@@ -54,6 +55,27 @@ def test_equality():
     assert NONE == NONE
     assert Some(10) != NONE
     print("test_equality passed")
+
+
+@optiony
+def might_return_none(x: int) -> str | None:
+    return "ok" if x > 0 else None
+
+
+def test_optiony_explicit_none():
+    assert might_return_none(1) == Some("ok")
+    assert might_return_none(0) is NONE
+
+
+@optiony_async
+async def async_maybe(x: int) -> str | None:
+    return "yes" if x > 0 else None
+
+
+@pytest.mark.asyncio
+async def test_async_optiony_explicit_none():
+    assert await async_maybe(1) == Some("yes")
+    assert await async_maybe(0) is NONE
 
 
 if __name__ == "__main__":

@@ -10,12 +10,28 @@ pip install typeric
 ---
 
 ## 🚀 Features
-- ✅ Functional-style `Result` type: `Ok(value)` and `Err(error)`, and you can spread(like `?` in Rust) or combine them.
-- 🌀 Lightweight `Option` type: `Some(value)` and `NONE`
-- 🧩 Pattern matching support (`__match_args__`)
-- 🔒 Immutable with `.map()` / `.map_err()` / `.unwrap()` / `.unwrap_or()` helpers
-- 🔧 Clean type signatures: `Result[T, E]` and `Option[T]`
-- 🛠️ Built for extensibility — more type tools coming
+
+- ✅ **Functional-style `Result` type**  
+  `Ok(value)` and `Err(error)` with powerful `.map()`, `.and_then()`, `.combine()`, `.spread()` helpers — inspired by Rust’s `Result`.
+
+- 🌀 **Lightweight `Option` type**  
+  `Some(value)` and `NONE` to handle nullable data safely, with `.map()`, `.unwrap_or()`, `.is_some()` and more.
+
+- 🔁 **Seamless conversion decorators**  
+  - `@resulty`: Wraps any function to return `Result` instead of raising exceptions.  
+  - `@optiony`: Wraps any function to return `Option`, converting `None` or exceptions into `NONE`.
+
+- 🧩 **Pattern matching support**  
+  Supports Python’s `match` syntax via `__match_args__` for both `Ok/Err` and `Some/NONE`.
+
+- 🔒 **Immutable and composable**  
+  Safe and clean method chains using `.map()`, `.combine()`, `.inspect()`, etc.
+
+- 🔧 **Clean type signatures**  
+  Fully typed: `Result[T, E]` and `Option[T]` with static analysis and IDE support.
+
+- 🛠️ **Extensible foundation**  
+  Designed for easy extension — more algebraic types (`Either`, `Validated`, etc.) can be added naturally.
 
 ---
 
@@ -25,7 +41,7 @@ pip install typeric
 ### `Result`
 
 ```python
-from typeric.result import Result, Ok, Err
+from typeric.result import Result, Ok, Err, resulty, resulty_async, optiony, optiony_async
 
 def parse_number(text: str) -> Result[int, str]:
     try:
@@ -39,6 +55,27 @@ match parse_number("42"):
     case Err(error):
         print("Failed:", error)
 
+# let function return Result[T,str]
+@resulty
+def add(x: int, y: int) -> int:
+    return x + y
+
+res = add(1, 2)
+if res.is_ok():
+    print("Result:", res.unwrap())
+else:
+    print("Error:", res.err)
+
+# let async function return Result[T,str]
+@resulty_async
+async def async_add(x: int, y: int) -> int:
+    return x + y
+
+res = await async_add(1, 2)
+if res.is_ok():
+    print("Result:", res.unwrap())
+else:
+    print("Error:", res.err)
 
 def func_a(x: int) -> Result[int, str]:
     if x < 0:
@@ -110,6 +147,18 @@ match maybe_get(1, ["a", "b", "c"]):
         print("Got:", value)
     case NONE:
         print("Nothing found")
+
+@optiony
+def get_number(x: int) -> int | None:
+    if x > 0:
+        return x
+    return None
+
+@optiony_async
+async def fetch_data(flag: bool) -> str | None:
+    if flag:
+        return "data"
+    return None
 ```
 
 ---

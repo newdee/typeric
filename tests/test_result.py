@@ -6,10 +6,11 @@
 #    By: dfine <coding@dfine.tech>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/23 12:46:20 by dfine             #+#    #+#              #
-#    Updated: 2025/05/27 18:27:58 by dfine            ###   ########.fr        #
+#    Updated: 2025/05/27 22:17:42 by dfine            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
+import asyncio
 import hashlib
 from functools import partial
 from pathlib import Path
@@ -22,6 +23,8 @@ from typeric.result import (
     Ok,
     Result,
     UnwrapError,
+    resulty,
+    resulty_async,
     spreadable,
     spreadable_async,
 )
@@ -228,3 +231,40 @@ def test_err_combine_ok_no_effect():
     assert isinstance(combined, Err)
     assert combined.err == "something wrong"
     assert combined.errs == ["something wrong"]
+
+
+@resulty
+def div(x: int, y: int) -> float:
+    return x / y
+
+
+def test_resulty_ok():
+    result = div(10, 2)
+    assert isinstance(result, Ok)
+    assert result.unwrap() == 5.0
+
+
+def test_resulty_err():
+    result = div(10, 0)
+    assert isinstance(result, Err)
+    assert "division by zero" in str(result.err)
+
+
+@resulty_async
+async def async_div(x: int, y: int) -> float:
+    await asyncio.sleep(0.01)
+    return x / y
+
+
+@pytest.mark.asyncio
+async def test_async_resulty_ok():
+    result = await async_div(8, 2)
+    assert isinstance(result, Ok)
+    assert result.unwrap() == 4.0
+
+
+@pytest.mark.asyncio
+async def test_async_resulty_err():
+    result = await async_div(5, 0)
+    assert isinstance(result, Err)
+    assert "division by zero" in str(result.err)

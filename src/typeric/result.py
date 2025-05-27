@@ -6,7 +6,7 @@
 #    By: dfine <coding@dfine.tech>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/23 12:46:18 by dfine             #+#    #+#              #
-#    Updated: 2025/05/27 18:29:30 by dfine            ###   ########.fr        #
+#    Updated: 2025/05/27 22:17:51 by dfine            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -229,6 +229,31 @@ class Err(Generic[E]):
 
 
 Result: TypeAlias = Ok[T] | Err[E]
+
+
+def resulty(func: Callable[P, T]) -> Callable[P, Result[T, str]]:
+    @wraps(func)
+    def result_wrap(*args: P.args, **kwargs: P.kwargs) -> Result[T, str]:
+        try:
+            return Ok(func(*args, **kwargs))
+        except Exception as e:
+            return Err(str(e))
+
+    return result_wrap
+
+
+def resulty_async(
+    func: Callable[P, Awaitable[T]],
+) -> Callable[P, Awaitable[Result[T, str]]]:
+    @wraps(func)
+    async def result_wrap(*args: P.args, **kwargs: P.kwargs) -> Result[T, str]:
+        try:
+            result = await func(*args, **kwargs)
+            return Ok(result)
+        except Exception as e:
+            return Err(str(e))
+
+    return result_wrap
 
 
 def spreadable(func: Callable[P, Result[T, E]]) -> Callable[P, Result[T, E]]:

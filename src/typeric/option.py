@@ -6,13 +6,16 @@
 #    By: dfine <coding@dfine.tech>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/25 10:17:44 by dfine             #+#    #+#              #
-#    Updated: 2025/05/25 10:17:46 by dfine            ###   ########.fr        #
+#    Updated: 2025/05/27 22:17:56 by dfine            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 from __future__ import annotations
+from collections.abc import Awaitable
+from functools import wraps
 from typing import (
     Generic,
+    ParamSpec,
     TypeAlias,
     TypeVar,
     Callable,
@@ -23,6 +26,8 @@ from typing import (
 
 T = TypeVar("T")
 U = TypeVar("U")
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 class NoneTypeError(Exception):
@@ -99,3 +104,27 @@ class NoneType:
 
 NONE = NoneType()
 Option: TypeAlias = Some[T] | NoneType
+
+
+def optiony(func: Callable[P, R]) -> Callable[P, Option[R]]:
+    @wraps(func)
+    def option_wrap(*args: P.args, **kwargs: P.kwargs) -> Option[R]:
+        try:
+            res = func(*args, **kwargs)
+            return Some(res) if res is not None else NONE
+        except Exception as _e:
+            return NONE
+
+    return option_wrap
+
+
+def optiony_async(func: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[Option[R]]]:
+    @wraps(func)
+    async def option_wrap(*args: P.args, **kwargs: P.kwargs) -> Option[R]:
+        try:
+            res = await func(*args, **kwargs)
+            return Some(res) if res is not None else NONE
+        except Exception as _e:
+            return NONE
+
+    return option_wrap
