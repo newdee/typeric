@@ -268,3 +268,23 @@ async def test_async_resulty_err():
     result = await async_div(5, 0)
     assert isinstance(result, Err)
     assert "division by zero" in str(result.err)
+
+
+def test_resulty_overload():
+    @resulty
+    def f1(x: int) -> int:
+        return x * 2
+
+    @resulty
+    def f2(x: int) -> Result[int, ValueError]:
+        if x < 0:
+            return Err(ValueError("neg"))
+        return Ok(x)
+
+    r1 = f1(3)
+    r2 = f2(-1)
+    r3 = f2(5)
+
+    assert r1 == Ok(6)
+    assert r2 == Err("neg")
+    assert r3 == Ok(5)

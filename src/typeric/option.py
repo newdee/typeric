@@ -20,7 +20,9 @@ from typing import (
     TypeVar,
     Callable,
     NoReturn,
+    cast,
     final,
+    overload,
     override,
 )
 
@@ -106,11 +108,21 @@ NONE = NoneType()
 Option: TypeAlias = Some[T] | NoneType
 
 
-def optiony(func: Callable[P, R]) -> Callable[P, Option[R]]:
+@overload
+def optiony(func: Callable[P, Option[R]]) -> Callable[P, Option[R]]: ...
+
+
+@overload
+def optiony(func: Callable[P, R]) -> Callable[P, Option[R]]: ...
+
+
+def optiony(func: Callable[P, R | Option[R]]) -> Callable[P, Option[R]]:
     @wraps(func)
     def option_wrap(*args: P.args, **kwargs: P.kwargs) -> Option[R]:
         try:
             res = func(*args, **kwargs)
+            if isinstance(res, (Some, NoneType)):
+                return cast(Option[R], res)
             return Some(res) if res is not None else NONE
         except Exception as _e:
             return NONE
@@ -118,11 +130,27 @@ def optiony(func: Callable[P, R]) -> Callable[P, Option[R]]:
     return option_wrap
 
 
-def optiony_async(func: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[Option[R]]]:
+@overload
+def optiony_async(
+    func: Callable[P, Awaitable[Option[R]]],
+) -> Callable[P, Awaitable[Option[R]]]: ...
+
+
+@overload
+def optiony_async(
+    func: Callable[P, Awaitable[R]],
+) -> Callable[P, Awaitable[Option[R]]]: ...
+
+
+def optiony_async(
+    func: Callable[P, Awaitable[R | Option[R]]],
+) -> Callable[P, Awaitable[Option[R]]]:
     @wraps(func)
     async def option_wrap(*args: P.args, **kwargs: P.kwargs) -> Option[R]:
         try:
             res = await func(*args, **kwargs)
+            if isinstance(res, (Some, NoneType)):
+                return cast(Option[R], res)
             return Some(res) if res is not None else NONE
         except Exception as _e:
             return NONE

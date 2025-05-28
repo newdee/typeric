@@ -22,6 +22,7 @@ from typing import (
     TypeVar,
     cast,
     final,
+    overload,
     override,
 )
 
@@ -231,25 +232,50 @@ class Err(Generic[E]):
 Result: TypeAlias = Ok[T] | Err[E]
 
 
-def resulty(func: Callable[P, T]) -> Callable[P, Result[T, str]]:
+@overload
+def resulty(func: Callable[P, Result[T, E]]) -> Callable[P, Result[T, str]]: ...
+
+
+@overload
+def resulty(func: Callable[P, T]) -> Callable[P, Result[T, str]]: ...
+
+
+def resulty(func: Callable[P, T | Result[T, E]]) -> Callable[P, Result[T, str]]:
     @wraps(func)
     def result_wrap(*args: P.args, **kwargs: P.kwargs) -> Result[T, str]:
         try:
-            return Ok(func(*args, **kwargs))
+            res = func(*args, **kwargs)
+            if isinstance(res, (Ok, Err)):
+                return cast(Result[T, E], res).map_err(str)
+            return Ok(res)
         except Exception as e:
             return Err(str(e))
 
     return result_wrap
 
 
+@overload
+def resulty_async(
+    func: Callable[P, Awaitable[Result[T, E]]],
+) -> Callable[P, Awaitable[Result[T, str]]]: ...
+
+
+@overload
 def resulty_async(
     func: Callable[P, Awaitable[T]],
+) -> Callable[P, Awaitable[Result[T, str]]]: ...
+
+
+def resulty_async(
+    func: Callable[P, Awaitable[T | Result[T, E]]],
 ) -> Callable[P, Awaitable[Result[T, str]]]:
     @wraps(func)
     async def result_wrap(*args: P.args, **kwargs: P.kwargs) -> Result[T, str]:
         try:
-            result = await func(*args, **kwargs)
-            return Ok(result)
+            res = await func(*args, **kwargs)
+            if isinstance(res, (Ok, Err)):
+                return cast(Result[T, E], res).map_err(str)
+            return Ok(res)
         except Exception as e:
             return Err(str(e))
 

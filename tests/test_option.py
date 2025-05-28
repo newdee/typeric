@@ -11,7 +11,7 @@
 # **************************************************************************** #
 
 
-from typeric.option import NONE, NoneTypeError, Some, optiony, optiony_async
+from typeric.option import NONE, NoneTypeError, Some, optiony, optiony_async, Option
 import pytest
 
 
@@ -76,6 +76,28 @@ async def async_maybe(x: int) -> str | None:
 async def test_async_optiony_explicit_none():
     assert await async_maybe(1) == Some("yes")
     assert await async_maybe(0) is NONE
+
+
+def test_optiony_overload():
+    @optiony
+    def g1(x: int) -> int | None:
+        return x if x > 0 else None
+
+    @optiony
+    def g2(x: int) -> Option[int]:
+        if x > 0:
+            return Some(x)
+        return NONE
+
+    o1 = g1(10)
+    o2 = g1(-5)
+    o3 = g2(7)
+    o4 = g2(-1)
+
+    assert o1 == Some(10)
+    assert o2 is NONE
+    assert o3 == Some(7)
+    assert o4 is NONE
 
 
 if __name__ == "__main__":
