@@ -1,6 +1,6 @@
 [project]
 name = "typeric"
-version = "0.1.6"
+version = "0.1.7"
 description = "Utility types for Python, such as `Result`, `Option`, etc."
 readme = "README.md"
 authors = [
