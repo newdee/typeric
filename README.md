@@ -136,7 +136,7 @@ print(result2.errs)  # Err(['Username is empty', 'Age must > 0', 'Invalid email'
 
 ```python
 from typeric.option import Option, Some, NONE
-
+from typeric.wrap_func import get_time_sync 
 def maybe_get(index: int, items: list[str]) -> Option[str]:
     if 0 <= index < len(items):
         return Some(items[index])
@@ -148,6 +148,7 @@ match maybe_get(1, ["a", "b", "c"]):
     case NONE:
         print("Nothing found")
 
+@get_time_sync # This decorator is used for synchronous functions to measure execution time.
 @optiony
 def get_number(x: int) -> int | None:
     if x > 0:

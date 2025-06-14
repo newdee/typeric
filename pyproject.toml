@@ -1,13 +1,15 @@
 [project]
 name = "typeric"
-version = "0.1.7"
+version = "0.1.8"
 description = "Utility types for Python, such as `Result`, `Option`, etc."
 readme = "README.md"
 authors = [
     { name = "dfine", email = "coding@dfine.tech" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "loguru>=0.7.3",
+]
 
 [project.scripts]
 typeric = "typeric:main"
